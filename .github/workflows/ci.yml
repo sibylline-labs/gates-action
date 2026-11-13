@@ -1,0 +1,29 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: shellcheck
+        run: shellcheck -S warning scripts/*.sh
+
+  install-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Install the latest eris release
+        env:
+          ERIS_REPOSITORY: sibylline-labs/eris
+          ERIS_VERSION: ""
+          ERIS_TOKEN: ${{ github.token }}
+        run: bash scripts/install-eris.sh
+      - name: Run the installed binary
+        run: '"$ERIS_BIN" --version'
