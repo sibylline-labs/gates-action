@@ -1,0 +1,46 @@
+name: Gates
+description: Run the Gates required check on a pull request with eris gate ci.
+
+inputs:
+  token:
+    description: A Gates service token with the gates:read scope.
+    required: true
+  api-url:
+    description: Base URL of the Gates API.
+    required: false
+    default: https://api.sibylline.group
+  eris-version:
+    description: eris release tag to install. Empty installs the latest release.
+    required: false
+    default: ""
+  eris-repository:
+    description: GitHub repository whose releases carry the eris binary.
+    required: false
+    default: sibylline-labs/eris
+  eris-token:
+    description: Token used to read the releases of eris-repository.
+    required: false
+    default: ${{ github.token }}
+  registry:
+    description: Path to the surfaces registry, relative to the repository root.
+    required: false
+    default: .claude/surfaces.yml
+
+runs:
+  using: composite
+  steps:
+    - name: Install eris
+      shell: bash
+      env:
+        ERIS_VERSION: ${{ inputs.eris-version }}
+        ERIS_REPOSITORY: ${{ inputs.eris-repository }}
+        ERIS_TOKEN: ${{ inputs.eris-token }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/install-eris.sh"
+
+    - name: Run gates
+      shell: bash
+      env:
+        ERIS_YAKS_TOKEN: ${{ inputs.token }}
+        ERIS_YAKS_URL: ${{ inputs.api-url }}
+        REGISTRY: ${{ inputs.registry }}
+      run: '"$ERIS_BIN" gate ci --event "$GITHUB_EVENT_PATH" --registry "$REGISTRY"'
